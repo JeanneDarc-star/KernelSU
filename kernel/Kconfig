@@ -129,7 +129,8 @@ config KSU_HEURISTIC_IN_TREE_BUILD
 	bool "heuristic. do NOT touch"
 	depends on KSU
 	default y
- menu "KernelSU - SUSFS"
+ 
+menu "KernelSU - SUSFS"
  config KSU_SUSFS
  	bool "KernelSU addon - SUSFS"
  	depends on KSU
@@ -210,6 +211,20 @@ config KSU_HEURISTIC_IN_TREE_BUILD
  	  - Users have to take care of the selinux permission of both target path and redirected path by themselves.
  	  - OPEN_REDIRECT does not bypass some detections by default, but users can work with SUS_KSTAT to bypass them.
  	  - Effective only on processes with pre-defined uid scheme.
+
+ config KSU_SUSFS_SUS_MAP
+ 	bool "Enable to hide some mmapped real file from different proc maps interfaces"
+ 	depends on KSU_SUSFS
+ 	default y
+ 	help
+ 	  - Allow hiding mmapped real file from /proc/<pid>/[maps|smaps|smaps_rollup|map_files|mem|pagemap]
+ 	  - It does NOT support hiding for anon memory.
+ 	  - It does NOT hide any inline hooks or plt hooks cause by the injected library itself.
+ 	  - It may not be able to evade detections by apps that implement a good injection detection.
+ 	  - Effective only on zygote/zygote_next spawned user app process that is marked with TIF_PROC_UMOUNTED
+ 	    and with (uid % 100000) >= 10000.
  
+ endmenu
+
 
 endmenu
