@@ -3,8 +3,10 @@ package me.weishu.kernelsu.ui
 import androidx.compose.runtime.staticCompositionLocalOf
 
 enum class UiMode(val value: String) {
-    Miuix("miuix"),
-    Material("material");
+    /** The primary, Google Material 3 implementation. */
+    Material("material"),
+    /** Optional Xiaomi-oriented compatibility implementation. */
+    Miuix("miuix");
 
     companion object {
         fun fromValue(value: String): UiMode = when (value) {
