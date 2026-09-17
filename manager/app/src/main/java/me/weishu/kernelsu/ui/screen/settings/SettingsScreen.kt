@@ -47,6 +47,39 @@ fun SettingPager(
         onSetCheckModuleUpdate = viewModel::setCheckModuleUpdate,
         onOpenTheme = { navigator.push(Route.ColorPalette) },
         onSetUiModeIndex = { index ->
+            viewModel.setUiMode(if (index == 0) UiMode.Material.value else UiMode.Miuix.value)
+        },
+        onOpenProfileTemplate = { navigator.push(Route.AppProfileTemplate) },
+        onSetSuCompatMode = viewModel::setSuCompatMode,
+        onSetKernelUmountEnabled = viewModel::setKernelUmountEnabled,
+        onSetSelinuxHideEnabled = viewModel::setSelinuxHideEnabled,
+        onSetSulogEnabled = viewModel::setSulogEnabled,
+        onSetAdbRootEnabled = viewModel::setAdbRootEnabled,
+        onSetDefaultUmountModules = viewModel::setDefaultUmountModules,
+        onSetEnableWebDebugging = viewModel::setEnableWebDebugging,
+        onSetAutoJailbreak = viewModel::setAutoJailbreak,
+        onSetUseSoftReboot = viewModel::setUseSoftReboot,
+        onOpenAbout = { navigator.push(Route.About) },
+    )
+
+    when (LocalUiMode.current) {
+        UiMode.Miuix -> SettingPagerMiuix(uiState, actions, bottomInnerPadding)
+        UiMode.Material -> SettingPagerMaterial(uiState, actions, bottomInnerPadding)
+    }
+}
+    LifecycleResumeEffect(Unit) {
+        if (initialResumeHandled.value && latestIsCurrentPage) {
+            viewModel.refresh()
+        }
+        initialResumeHandled.value = true
+        onPauseOrDispose { }
+    }
+
+    val actions = SettingsScreenActions(
+        onSetCheckUpdate = viewModel::setCheckUpdate,
+        onSetCheckModuleUpdate = viewModel::setCheckModuleUpdate,
+        onOpenTheme = { navigator.push(Route.ColorPalette) },
+        onSetUiModeIndex = { index ->
             viewModel.setUiMode(if (index == 0) UiMode.Miuix.value else UiMode.Material.value)
         },
         onOpenProfileTemplate = { navigator.push(Route.AppProfileTemplate) },
