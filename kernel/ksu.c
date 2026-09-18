@@ -328,9 +328,6 @@ static int __init kernelsu_lkm_init(void)
 
 	apply_kernelsu_rules();
 	cache_sid();
-#ifdef CONFIG_KSU_SUSFS
-	susfs_set_batch_sid();
-#endif
 	setup_ksu_cred();
 
 	on_post_fs_data();

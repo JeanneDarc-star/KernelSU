@@ -1,7 +1,4 @@
 #ifdef CONFIG_KSU_SUSFS
-extern u32 susfs_zygote_sid;
-extern u32 susfs_zygote_next_sid;
-
 static inline void ksu_handle_extra_susfs_work(void)
 {
 	extern struct work_struct susfs_extra_works;
@@ -12,17 +9,17 @@ static inline void ksu_handle_extra_susfs_work(void)
 	schedule_work(&susfs_extra_works);
 }
 
-// Common tail for a zygote (or zygote_next) spawned process that is about
-// to become an app (isolated service, or a normal app uid): mark it for
-// SUSFS so SUS_PATH/SUS_MOUNT/SUS_KSTAT apply to it, matching the intent
-// of the generic SUSFS-for-KernelSU patch's handle_zygote*_setresuid().
-static int handle_zygote_family_setresuid(struct cred *new, const struct cred *old, uid_t new_uid, bool is_zygote_next)
+// Common tail for a zygote-spawned process that is about to become an
+// app (isolated service, or a normal app uid): mark it for SUSFS so
+// SUS_PATH/SUS_MOUNT/SUS_KSTAT apply to it. susfs_set_current_proc_no_su()
+// and susfs_set_current_proc_umounted() are static inline thread-flag
+// setters from linux/susfs_def.h (via linux/susfs.h) - no extra KSU-side
+// plumbing needed for them.
+static int handle_zygote_setresuid(struct cred *new, const struct cred *old, uid_t new_uid)
 {
 	if (is_isolated_process(new_uid)) {
 		susfs_set_current_proc_no_su();
 		susfs_set_current_proc_umounted();
-		if (is_zygote_next)
-			susfs_set_current_proc_umounted_for_zygote_next();
 		goto do_susfs_work;
 	}
 
@@ -35,8 +32,6 @@ static int handle_zygote_family_setresuid(struct cred *new, const struct cred *o
 	if (likely(is_appuid(new_uid) && ksu_uid_should_umount(new_uid))) {
 		susfs_set_current_proc_no_su();
 		susfs_set_current_proc_umounted();
-		if (is_zygote_next)
-			susfs_set_current_proc_umounted_for_zygote_next();
 		goto do_susfs_work;
 	}
 
@@ -51,12 +46,7 @@ static int handle_zygote_family_setresuid(struct cred *new, const struct cred *o
 	return 0;
 
 do_susfs_work:
-	if (!is_zygote_next) {
-		// zygote_next-spawned processes are still in the init mount
-		// namespace at this point, so umounting here would be wrong;
-		// only umount for classic zygote-spawned processes.
-		ksu_handle_umount(new, old);
-	}
+	ksu_handle_umount(new, old);
 	ksu_handle_extra_susfs_work();
 	return 0;
 }
@@ -78,15 +68,12 @@ static __always_inline void ksu_handle_setresuid_cred(struct cred *new, const st
 		pr_info("handle_setresuid from %d to %d\n", old_uid, new_uid);
 
 #ifdef CONFIG_KSU_SUSFS
-	// We are only interested in processes spawned by zygote or
-	// zygote_next here; everything else (manager, adbd, su itself, ...)
-	// falls through to the existing generic handling below unchanged.
-	if (susfs_is_sid_equal(old, susfs_zygote_sid)) {
-		handle_zygote_family_setresuid(new, old, new_uid, false);
-		return;
-	}
-	if (susfs_is_sid_equal(old, susfs_zygote_next_sid)) {
-		handle_zygote_family_setresuid(new, old, new_uid, true);
+	// We are only interested in processes spawned by zygote here;
+	// everything else (manager, adbd, su itself, ...) falls through to
+	// the existing generic handling below unchanged. is_zygote() is
+	// this fork's existing cached-SID domain check (kernel/selinux).
+	if (is_zygote(old)) {
+		handle_zygote_setresuid(new, old, new_uid);
 		return;
 	}
 #endif

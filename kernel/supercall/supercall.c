@@ -98,68 +98,68 @@ int ksu_handle_sys_reboot(int magic1, int magic2, unsigned int cmd, void __user 
 	// SUSFS userspace config channel: reuses the same magic1-gated sys_reboot
 	// supercall, keyed off SUSFS_MAGIC on magic2 instead of KSU_INSTALL_MAGIC2.
 	// Only root (already-escalated-via-KernelSU) callers may configure SUSFS.
+	// susfs_* setters take void __user ** (they dereference it once
+	// themselves - see susfs_add_sus_path() in fs/susfs.c), so we pass
+	// arg itself here, not the already-dereferenced arg4 above.
 	if (magic2 == SUSFS_MAGIC && current_uid().val == 0) {
 		switch (cmd) {
 #ifdef CONFIG_KSU_SUSFS_SUS_PATH
 		case CMD_SUSFS_ADD_SUS_PATH:
-			susfs_add_sus_path(arg4);
+			susfs_add_sus_path(arg);
 			return 0;
 		case CMD_SUSFS_ADD_SUS_PATH_LOOP:
-			susfs_add_sus_path_loop(arg4);
+			susfs_add_sus_path_loop(arg);
 			return 0;
 #endif
 #ifdef CONFIG_KSU_SUSFS_SUS_MOUNT
 		case CMD_SUSFS_HIDE_SUS_MNTS_FOR_NON_SU_PROCS:
-			susfs_set_hide_sus_mnts_for_non_su_procs(arg4);
+			susfs_set_hide_sus_mnts_for_non_su_procs(arg);
 			return 0;
 #endif
 #ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
 		case CMD_SUSFS_ADD_SUS_KSTAT:
-			susfs_add_sus_kstat(arg4);
+			susfs_add_sus_kstat(arg);
 			return 0;
 		case CMD_SUSFS_UPDATE_SUS_KSTAT:
-			susfs_update_sus_kstat(arg4);
-			return 0;
-		case CMD_SUSFS_ADD_SUS_KSTAT_STATICALLY:
-			susfs_add_sus_kstat(arg4);
+			susfs_update_sus_kstat(arg);
 			return 0;
 #endif
 #ifdef CONFIG_KSU_SUSFS_SPOOF_UNAME
 		case CMD_SUSFS_SET_UNAME:
-			susfs_set_uname(arg4);
+			susfs_set_uname(arg);
 			return 0;
 #endif
 #ifdef CONFIG_KSU_SUSFS_ENABLE_LOG
 		case CMD_SUSFS_ENABLE_LOG:
-			susfs_enable_log(arg4);
+			susfs_enable_log(arg);
 			return 0;
 #endif
 #ifdef CONFIG_KSU_SUSFS_SPOOF_CMDLINE_OR_BOOTCONFIG
 		case CMD_SUSFS_SET_CMDLINE_OR_BOOTCONFIG:
-			susfs_set_cmdline_or_bootconfig(arg4);
+			susfs_set_cmdline_or_bootconfig(arg);
 			return 0;
 #endif
 #ifdef CONFIG_KSU_SUSFS_OPEN_REDIRECT
 		case CMD_SUSFS_ADD_OPEN_REDIRECT:
-			susfs_add_open_redirect(arg4);
+			susfs_add_open_redirect(arg);
 			return 0;
 #endif
 #ifdef CONFIG_KSU_SUSFS_SUS_MAP
 		case CMD_SUSFS_ADD_SUS_MAP:
-			susfs_add_sus_map(arg4);
+			susfs_add_sus_map(arg);
 			return 0;
 #endif
 		case CMD_SUSFS_ENABLE_AVC_LOG_SPOOFING:
-			susfs_set_avc_log_spoofing(arg4);
+			susfs_set_avc_log_spoofing(arg);
 			return 0;
 		case CMD_SUSFS_SHOW_ENABLED_FEATURES:
-			susfs_get_enabled_features(arg4);
+			susfs_get_enabled_features(arg);
 			return 0;
 		case CMD_SUSFS_SHOW_VARIANT:
-			susfs_show_variant(arg4);
+			susfs_show_variant(arg);
 			return 0;
 		case CMD_SUSFS_SHOW_VERSION:
-			susfs_show_version(arg4);
+			susfs_show_version(arg);
 			return 0;
 		default:
 			return -EINVAL;
