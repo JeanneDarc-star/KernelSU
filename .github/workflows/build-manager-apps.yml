@@ -17,7 +17,7 @@ on:
       - "Cargo.lock"
       - "Cargo.toml"
   pull_request:
-    branches: ["main", "dev"]
+    branches: ["master", "main", "dev"]
     paths:
       - ".github/workflows/build-manager-apps.yml"
       - ".github/workflows/build-lkm.yml"
