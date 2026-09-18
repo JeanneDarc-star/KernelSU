@@ -160,7 +160,7 @@ fun SettingPagerMiuix(
                                     tint = colorScheme.onBackground
                                 )
                             },
-                            selectedIndex = if (uiState.uiMode == UiMode.Material.value) 1 else 0,
+                            selectedIndex = if (uiState.uiMode == UiMode.Material.value) 0 else 1,
                             onSelectedIndexChange = actions.onSetUiModeIndex
                         )
                         ArrowPreference(

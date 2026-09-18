@@ -61,6 +61,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamiccolor.ColorSpec
 import me.weishu.kernelsu.KernelVersion
 import me.weishu.kernelsu.Natives
 import me.weishu.kernelsu.R
@@ -73,6 +75,9 @@ import me.weishu.kernelsu.ui.component.material.TonalCard
 import me.weishu.kernelsu.ui.component.material.expressiveTopAppBarColors
 import me.weishu.kernelsu.ui.component.rebootlistpopup.RebootListPopup
 import me.weishu.kernelsu.ui.component.statustag.StatusTag
+import me.weishu.kernelsu.ui.theme.AppSettings
+import me.weishu.kernelsu.ui.theme.ColorMode
+import me.weishu.kernelsu.ui.theme.MaterialKernelSUTheme
 
 @Composable
 fun HomePagerMaterial(
@@ -194,7 +199,7 @@ private fun StatusCard(
     state: HomeUiState,
     actions: HomeActions,
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(13.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         val ksuActive = state.ksuVersion != null
         val notInstalled = !ksuActive && state.kernelVersion.isGKI()
 
@@ -254,71 +259,69 @@ private fun StatusCard(
             modifier = Modifier.fillMaxWidth(),
             color = containerColor,
             contentColor = contentColor,
-            shape = MaterialTheme.shapes.large,
+            shape = MaterialTheme.shapes.extraLarge,
             onClick = {
                 if (!state.isLateLoadMode) {
                     actions.onInstallClick()
                 }
             }
         ) {
-            ListItem(
-                modifier = Modifier,
-                leadingContent = {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Icon(statusIcon, contentDescription = statusTitle)
-                },
-                trailingContent = statusTrailing,
-                overlineContent = null,
-                supportingContent = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = statusSummary,
-                            modifier = Modifier.weight(1f, fill = false),
-                            style = MaterialTheme.typography.bodyMedium
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.weight(1f),
+                    )
+                    statusTrailing?.invoke()
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = statusTitle,
+                        style = MaterialTheme.typography.headlineSmall,
+                    )
+                    if (ksuActive && state.isSafeMode) {
+                        Spacer(Modifier.width(8.dp))
+                        StatusTag(
+                            label = stringResource(id = R.string.safe_mode),
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            backgroundColor = MaterialTheme.colorScheme.errorContainer
                         )
-                        if (state.showCustomLkmBadge) {
-                            Spacer(Modifier.width(8.dp))
-                            StatusTag(
-                                label = stringResource(R.string.home_lkm_custom),
-                                contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                                backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            )
-                        }
                     }
-                },
-                verticalAlignment = Alignment.CenterVertically,
-                colors = ListItemDefaults.colors(
-                    containerColor = Color.Transparent,
-                    contentColor = contentColor,
-                    leadingContentColor = contentColor,
-                    trailingContentColor = contentColor,
-                    supportingContentColor = contentColor.copy(alpha = 0.7f)
-                ),
-                elevation = ListItemDefaults.elevation(),
-                content = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = statusTitle,
-                            style = MaterialTheme.typography.titleMediumEmphasized
+                    if (ksuActive && state.isLateLoadMode) {
+                        Spacer(Modifier.width(8.dp))
+                        StatusTag(
+                            label = stringResource(id = R.string.jailbreak_mode),
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                            backgroundColor = MaterialTheme.colorScheme.errorContainer
                         )
-                        if (ksuActive && state.isSafeMode) {
-                            Spacer(Modifier.width(8.dp))
-                            StatusTag(
-                                label = stringResource(id = R.string.safe_mode),
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                                backgroundColor = MaterialTheme.colorScheme.errorContainer
-                            )
-                        }
-                        if (ksuActive && state.isLateLoadMode) {
-                            Spacer(Modifier.width(8.dp))
-                            StatusTag(
-                                label = stringResource(id = R.string.jailbreak_mode),
-                                contentColor = MaterialTheme.colorScheme.onErrorContainer,
-                                backgroundColor = MaterialTheme.colorScheme.errorContainer
-                            )
-                        }
                     }
-                },
-            )
+                }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = statusSummary,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = contentColor.copy(alpha = 0.78f),
+                    )
+                    if (state.showCustomLkmBadge) {
+                        Spacer(Modifier.width(8.dp))
+                        StatusTag(
+                            label = stringResource(R.string.home_lkm_custom),
+                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
+                            backgroundColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -521,6 +524,13 @@ private val previewSystemInfo = SystemInfo(
     seccompStatus = 2
 )
 
+private val previewAppSettings = AppSettings(
+    colorMode = ColorMode.LIGHT,
+    keyColor = 0xFF6750A4.toInt(),
+    paletteStyle = PaletteStyle.TonalSpot,
+    colorSpec = ColorSpec.SpecVersion.SPEC_2025,
+)
+
 private val previewUriHandler = object : UriHandler {
     override fun openUri(uri: String) {}
 }
@@ -533,24 +543,26 @@ private fun HomeScreenPreviewContent(
     isLateLoadMode: Boolean = false,
     selinuxStatus: String = "Enforcing",
 ) {
-    CompositionLocalProvider(LocalUriHandler provides previewUriHandler) {
-        Column(
-            modifier = Modifier.padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            val actions = HomeActions({}, {})
-            StatusCard(
-                state = previewHomeScreenState(
-                    ksuVersion = ksuVersion,
-                    lkmMode = lkmMode,
-                    isSafeMode = isSafeMode,
-                    isLateLoadMode = isLateLoadMode,
-                    selinuxStatus = selinuxStatus,
-                ),
-                actions = actions
-            )
-            InfoCard(previewSystemInfo.copy(selinuxStatus = selinuxStatus))
-            SupportLinks(onOpenUrl = {})
+    MaterialKernelSUTheme(appSettings = previewAppSettings) {
+        CompositionLocalProvider(LocalUriHandler provides previewUriHandler) {
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                val actions = HomeActions({}, {})
+                StatusCard(
+                    state = previewHomeScreenState(
+                        ksuVersion = ksuVersion,
+                        lkmMode = lkmMode,
+                        isSafeMode = isSafeMode,
+                        isLateLoadMode = isLateLoadMode,
+                        selinuxStatus = selinuxStatus,
+                    ),
+                    actions = actions
+                )
+                InfoCard(previewSystemInfo.copy(selinuxStatus = selinuxStatus))
+                SupportLinks(onOpenUrl = {})
+            }
         }
     }
 }
