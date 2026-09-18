@@ -6,7 +6,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.Dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -48,39 +47,6 @@ fun SettingPager(
         onOpenTheme = { navigator.push(Route.ColorPalette) },
         onSetUiModeIndex = { index ->
             viewModel.setUiMode(if (index == 0) UiMode.Material.value else UiMode.Miuix.value)
-        },
-        onOpenProfileTemplate = { navigator.push(Route.AppProfileTemplate) },
-        onSetSuCompatMode = viewModel::setSuCompatMode,
-        onSetKernelUmountEnabled = viewModel::setKernelUmountEnabled,
-        onSetSelinuxHideEnabled = viewModel::setSelinuxHideEnabled,
-        onSetSulogEnabled = viewModel::setSulogEnabled,
-        onSetAdbRootEnabled = viewModel::setAdbRootEnabled,
-        onSetDefaultUmountModules = viewModel::setDefaultUmountModules,
-        onSetEnableWebDebugging = viewModel::setEnableWebDebugging,
-        onSetAutoJailbreak = viewModel::setAutoJailbreak,
-        onSetUseSoftReboot = viewModel::setUseSoftReboot,
-        onOpenAbout = { navigator.push(Route.About) },
-    )
-
-    when (LocalUiMode.current) {
-        UiMode.Miuix -> SettingPagerMiuix(uiState, actions, bottomInnerPadding)
-        UiMode.Material -> SettingPagerMaterial(uiState, actions, bottomInnerPadding)
-    }
-}
-    LifecycleResumeEffect(Unit) {
-        if (initialResumeHandled.value && latestIsCurrentPage) {
-            viewModel.refresh()
-        }
-        initialResumeHandled.value = true
-        onPauseOrDispose { }
-    }
-
-    val actions = SettingsScreenActions(
-        onSetCheckUpdate = viewModel::setCheckUpdate,
-        onSetCheckModuleUpdate = viewModel::setCheckModuleUpdate,
-        onOpenTheme = { navigator.push(Route.ColorPalette) },
-        onSetUiModeIndex = { index ->
-            viewModel.setUiMode(if (index == 0) UiMode.Miuix.value else UiMode.Material.value)
         },
         onOpenProfileTemplate = { navigator.push(Route.AppProfileTemplate) },
         onSetSuCompatMode = viewModel::setSuCompatMode,

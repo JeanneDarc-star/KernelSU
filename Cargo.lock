@@ -5,7 +5,7 @@ version = 4
 [[package]]
 name = "adb_client"
 version = "3.1.1"
-source = "git+https://github.com/Kernel-SU/adb_client#d97a966435bebaa55017834869dec08150826aa7"
+source = "git+https://github.com/cocool97/adb_client?rev=d97a966435bebaa55017834869dec08150826aa7#d97a966435bebaa55017834869dec08150826aa7"
 dependencies = [
  "byteorder",
  "log",
