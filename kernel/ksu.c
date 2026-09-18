@@ -90,6 +90,11 @@
 #include "downstream/ksu_hostsredirect.h"
 #endif
 
+#ifdef CONFIG_KSU_SUSFS
+#include <linux/susfs.h>
+#include <linux/workqueue.h>
+#endif
+
 // unity build
 #include "policy/allowlist.c"
 #include "policy/app_profile.c"
@@ -235,6 +240,10 @@ static int __init kernelsu_init(void)
 		return -ENOSYS;
 	}
 
+#ifdef CONFIG_KSU_SUSFS
+	susfs_init();
+#endif
+
 	ksu_feature_init();
 
 	ksu_supercalls_init();
@@ -319,6 +328,9 @@ static int __init kernelsu_lkm_init(void)
 
 	apply_kernelsu_rules();
 	cache_sid();
+#ifdef CONFIG_KSU_SUSFS
+	susfs_set_batch_sid();
+#endif
 	setup_ksu_cred();
 
 	on_post_fs_data();

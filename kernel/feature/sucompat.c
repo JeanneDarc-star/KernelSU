@@ -370,6 +370,21 @@ SUCOMPAT_HOOK_TYPE ksu_handle_execveat(int *fd, struct filename **filename_ptr, 
 	static_assert(offsetof(struct filename, name) == 0);
 #endif
 
+#ifdef CONFIG_KSU_SUSFS
+	// susfs relies on TIF_PROC_UMOUNTED-style "is this process a real
+	// zygote-spawned app" tracking; anything exec'd here that isn't
+	// app_process/adbd/stub_zygote is not part of that flow, so tell
+	// susfs to skip its no-su bookkeeping for it.
+	{
+		const char *exec_name = *(const char **)struct_filename;
+		if (exec_name && likely(!strstr(exec_name, "/app_process") &&
+					 !strstr(exec_name, "/adbd") &&
+					 !strstr(exec_name, "/stub_zygote"))) {
+			susfs_set_current_proc_no_su();
+		}
+	}
+#endif
+
 	// first member of struct filename is char *name.
 	// char *filename = *(char **)struct_filename;
 	ksu_sucompat_kernel_common(fd, (void **)struct_filename, argv, envp, flags, "do_execveat_common");
