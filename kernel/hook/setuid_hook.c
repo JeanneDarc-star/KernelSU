@@ -26,6 +26,8 @@ static int handle_zygote_setresuid(struct cred *new, const struct cred *old, uid
 	if (unlikely(is_uid_manager(new_uid))) {
 		pr_info("install fd for manager: %d\n", new_uid);
 		ksu_install_fd();
+		disable_seccomp();
+		set_thread_flag(TIF_KSU_MANAGED); // sucompat fast-path
 		return 0;
 	}
 
