@@ -4,11 +4,11 @@ set -eu
 GKI_ROOT=$(pwd)
 
 display_usage() {
-    echo "Usage: $0 [--cleanup | <commit-or-tag>]"
-    echo "  --cleanup:              Cleans up previous modifications made by the script."
-    echo "  <commit-or-tag>:        Sets up or updates the KernelSU to specified tag or commit."
-    echo "  -h, --help:             Displays this usage information."
-    echo "  (no args):              Sets up or updates the KernelSU environment to the latest tagged version."
+    echo "Usage: $0 [--cleanup | <commit-or-tag-or-branch>]"
+    echo "  --cleanup:               Cleans up previous modifications made by the script."
+    echo "  <commit-or-tag-or-branch>: Sets up or updates KernelSU to specified tag, commit, or branch."
+    echo "  -h, --help:              Displays this usage information."
+    echo "  (no args):               Sets up KernelSU to the KSUSUSFS branch by default."
 }
 
 initialize_variables() {
@@ -38,19 +38,24 @@ perform_cleanup() {
 
 # Sets up or update KernelSU environment
 setup_kernelsu() {
+    TARGET_REF="${1:-KSUSUSFS}"
+
     echo "[+] Setting up KernelSU..."
-    test -d "$GKI_ROOT/KernelSU" || git clone https://github.com/backslashxx/KernelSU && echo "[+] Repository cloned."
+    test -d "$GKI_ROOT/KernelSU" || git clone https://github.com/JeanneDarc-star/KernelSU && echo "[+] Repository cloned."
     cd "$GKI_ROOT/KernelSU"
     git stash && echo "[-] Stashed current changes."
-    if [ "$(git status | grep -Po 'v\d+(\.\d+)*' | head -n1)" ]; then
-        git checkout main && echo "[-] Switched to main branch."
-    fi
-    git pull && echo "[+] Repository updated."
-    if [ -z "${1-}" ]; then
-        git checkout "$(git describe --abbrev=0 --tags)" && echo "[-] Checked out latest tag."
+    
+    # Fetch all remote branches and tags explicitly
+    git fetch --all --tags && echo "[+] Fetched latest refs."
+
+    # Checkout requested target (branch, tag, or commit)
+    if git checkout "$TARGET_REF" 2>/dev/null || git checkout -b "$TARGET_REF" "origin/$TARGET_REF" 2>/dev/null; then
+        echo "[-] Checked out $TARGET_REF."
+        git pull origin "$TARGET_REF" 2>/dev/null || true
     else
-        git checkout "$1" && echo "[-] Checked out $1." || echo "[-] Checkout default branch"
+        echo "[-] Failed to checkout $TARGET_REF, using current HEAD."
     fi
+
     cd "$DRIVER_DIR"
     ln -sf "$(realpath --relative-to="$DRIVER_DIR" "$GKI_ROOT/KernelSU/kernel")" "kernelsu" && echo "[+] Symlink created."
 
