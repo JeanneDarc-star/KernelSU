@@ -91,30 +91,3 @@ void __exit ksu_kernel_umount_exit(void)
 {
 	ksu_unregister_feature_handler(KSU_FEATURE_KERNEL_UMOUNT);
 }
-
-#ifdef CONFIG_KSU_SUSFS_SUS_KSTAT
-/*
- * fs/susfs.c declares these extern and calls them (only from the
- * SUS_KSTAT path) to translate a mount that may be one of KSU's own
- * bind/overlay mounts back to the "real" underlying mount, so it can
- * report a pre-KSU-looking mnt_id/vfsmount in spoofed kstat results.
- *
- * This fork does not keep a separate remap table for that, so these
- * are safe passthroughs: the caller's struct mount pointer is treated
- * as opaque (never dereferenced, since we don't have a verified
- * struct-mount layout in KSU driver code here) and handed back
- * unchanged. This means kstat spoofing for a path that lives on a
- * KSU-managed mount may report that mount's own id instead of the
- * pre-KSU one - a narrow SUS_KSTAT edge case, not a general SUSFS
- * regression.
- */
-int susfs_get_non_sus_mnt_id_from_mnt(struct mount *orig_mnt)
-{
-	return 0;
-}
-
-struct vfsmount *susfs_get_non_sus_vfsmnt_from_vfsmnt(struct vfsmount *vfsmnt)
-{
-	return vfsmnt;
-}
-#endif /* CONFIG_KSU_SUSFS_SUS_KSTAT */
